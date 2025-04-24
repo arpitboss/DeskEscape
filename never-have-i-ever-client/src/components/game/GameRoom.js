@@ -712,114 +712,199 @@ const GameRoom = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Room header with improved styling */}
-      <div className="mb-6 flex flex-col md:flex-row justify-between items-center bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-xl shadow-sm border border-indigo-100">
-        <div className="flex flex-col md:flex-row items-center mb-4 md:mb-0">
-          <h1 className="text-2xl font-bold text-indigo-800">{room.name}</h1>
-          <div className="flex flex-wrap gap-2 mt-2 md:mt-0 md:ml-4">
-            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${room.status === 'waiting'
-              ? 'bg-green-100 text-green-800 border border-green-200'
-              : 'bg-blue-100 text-blue-800 border border-blue-200'
-              }`}>
-              {room.status === 'waiting'
-                ? 'Waiting for Players'
-                : `Round ${room.currentRound} of ${room.maxRounds}`}
-            </span>
-            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 border border-gray-200">
-              {room.type === 'public' ? 'Public Room' : 'Private Room'}
-            </span>
+      <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+        <div className="bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-4">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center mb-4 md:mb-0">
+              <h1 className="text-2xl font-bold text-white">{room.name}</h1>
+              <div className="ml-4 flex gap-2">
+                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${room.status === 'waiting'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-blue-100 text-blue-800'
+                  }`}>
+                  {room.status === 'waiting'
+                    ? 'Waiting for Players'
+                    : `Round ${room.currentRound} of ${room.maxRounds}`}
+                </span>
+                <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                  {room.type === 'public' ? 'Public Room' : 'Private Room'}
+                </span>
+              </div>
+            </div>
+
+            <div className="w-full md:w-auto">
+              {isUserInRoom() ? (
+                <button
+                  onClick={handleLeaveRoom}
+                  className="w-full md:w-auto bg-white text-red-600 border border-red-200 hover:bg-red-50 px-6 py-2 rounded-lg transition-colors shadow-sm font-medium"
+                >
+                  Leave Room
+                </button>
+              ) : (
+                <button
+                  onClick={handleJoinRoom}
+                  disabled={isJoining || room.status !== 'waiting' || room.players.length >= room.maxPlayers}
+                  className="w-full md:w-auto bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 px-6 py-2 rounded-lg transition-colors shadow-sm font-medium disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed"
+                >
+                  {isJoining ? 'Joining...' : 'Join Room'}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="w-full md:w-auto">
-          {isUserInRoom() ? (
-            <button
-              onClick={handleLeaveRoom}
-              className="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-colors shadow-sm"
-            >
-              Leave Room
-            </button>
-          ) : (
-            <button
-              onClick={handleJoinRoom}
-              disabled={isJoining || room.status !== 'waiting' || room.players.length >= room.maxPlayers}
-              className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md transition-colors shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {isJoining ? 'Joining...' : 'Join Room'}
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Private room passcode input */}
-      {room.type === 'private' && !isUserInRoom() && (
-        <div className="mb-6 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <label className="block mb-2 font-medium text-gray-700">Room Passcode:</label>
-          <div className="flex">
-            <input
-              type="password"
-              value={passcode}
-              onChange={(e) => setPasscode(e.target.value)}
-              className="border border-gray-300 p-3 rounded-l-md flex-grow focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Enter the room passcode"
-            />
-            <button
-              onClick={handleJoinRoom}
-              disabled={isJoining || !passcode}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-r-md transition-colors disabled:bg-gray-400"
-            >
-              Enter
-            </button>
-          </div>
-          <p className="text-sm text-gray-500 mt-2">You need the passcode to enter this private room</p>
+      {/* Room details bar */}
+      <div className="px-6 py-3 bg-indigo-50 flex flex-wrap gap-4 justify-between items-center text-sm">
+        <div className="flex items-center">
+          <svg className="w-4 h-4 text-indigo-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span className="font-medium text-gray-700">Host: {room.host?.name || 'Anonymous'}</span>
         </div>
-      )}
 
-      {/* Main content area */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left column - Player list and controls */}
-        <div className="md:col-span-1">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Players</h2>
-            <PlayerList
-              players={room.players.map(player => ({
-                ...player,
-                hasAnswered: room.answers?.some(
-                  a => a.user === player.user._id &&
-                    a.question === room.currentQuestion?._id &&
-                    a.round === room.currentRound
-                )
-              }))}
-              host={room.host}
-              currentUser={currentUser}
-            />
+        <div className="flex items-center">
+          <svg className="w-4 h-4 text-indigo-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <span className="font-medium text-gray-700">Players: {room.players.length}/{room.maxPlayers}</span>
+        </div>
+
+        <div className="flex items-center">
+          <svg className="w-4 h-4 text-indigo-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="font-medium text-gray-700">Rounds: {room.maxRounds}</span>
+        </div>
+
+        {room.status === 'playing' && (
+          <div className="flex items-center">
+            <svg className="w-4 h-4 text-indigo-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span className="font-medium text-gray-700">Current Round: {room.currentRound}/{room.maxRounds}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Private room passcode input */}
+      {
+        room.type === 'private' && !isUserInRoom() && (
+          <div className="mb-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <div className="flex-shrink-0 bg-indigo-100 rounded-full p-3">
+                <svg className="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+
+              <div className="flex-grow">
+                <div className="mb-1.5 font-medium text-gray-800">Private Room</div>
+                <p className="text-sm text-gray-600 mb-3">This room requires a passcode to enter</p>
+
+                <div className="flex">
+                  <input
+                    type="password"
+                    value={passcode}
+                    onChange={(e) => setPasscode(e.target.value)}
+                    className="border border-gray-300 p-3 rounded-l-lg flex-grow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="Enter the room passcode"
+                  />
+                  <button
+                    onClick={handleJoinRoom}
+                    disabled={isJoining || !passcode}
+                    className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-6 py-3 rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  >
+                    {isJoining ? 'Entering...' : 'Enter Room'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Main content grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Player list column */}
+        <div className="lg:col-span-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-full">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-800">Players</h2>
+            </div>
+
+            <div className="p-4">
+              <PlayerList
+                players={room.players.map(player => ({
+                  ...player,
+                  hasAnswered: room.answers?.some(
+                    a => a.user === player.user._id &&
+                      a.question === room.currentQuestion?._id &&
+                      a.round === room.currentRound
+                  )
+                }))}
+                host={room.host}
+                currentUser={currentUser}
+              />
+            </div>
 
             {isUserHost() && room.status === 'waiting' && (
-              <button
-                onClick={handleStartGame}
-                disabled={room.players.length < 2}
-                className="w-full mt-6 bg-green-500 hover:bg-green-600 text-white py-3 rounded-md font-medium transition-colors shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {room.players.length < 2
-                  ? 'Need at least 2 players'
-                  : 'Start Game'}
-              </button>
+              <div className="p-4 border-t border-gray-100">
+                <button
+                  onClick={handleStartGame}
+                  disabled={room.players.length < 2}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-3 rounded-lg font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {room.players.length < 2 ? 'Need at least 2 players' : 'Start Game'}
+                </button>
+              </div>
             )}
 
             {room.status === 'playing' && (
-              <div className="mt-6 bg-blue-50 p-4 rounded">
-                <h3 className="font-semibold mb-2">Game Progress</h3>
-                <div className="flex justify-between mb-2">
-                  <span>Round:</span>
-                  <span>{room.currentRound} of {room.maxRounds}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Answers:</span>
-                  <span>{answerCount} of {totalPlayers}</span>
+              <div className="p-4 border-t border-gray-100">
+                <div className="bg-indigo-50 p-5 rounded-lg">
+                  <h3 className="font-bold text-gray-800 mb-3 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Game Progress
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Round:</span>
+                      <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-medium">
+                        {room.currentRound} of {room.maxRounds}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Answers:</span>
+                      <div className="flex items-center">
+                        <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-medium mr-2">
+                          {answerCount} of {totalPlayers}
+                        </span>
+                        <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-indigo-500 h-2 rounded-full"
+                            style={{
+                              width: `${totalPlayers > 0 ? (answerCount / totalPlayers) * 100 : 0}%`
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="md:col-span-2">
+          <div className="lg:col-span-8">
             {room.status === 'waiting' ? (
               <div className="bg-white p-8 rounded-lg shadow-sm text-center animate-fade-in">
                 <div className="mb-6">
@@ -943,7 +1028,7 @@ const GameRoom = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
